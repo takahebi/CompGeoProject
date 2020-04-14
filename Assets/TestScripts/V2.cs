@@ -5,7 +5,7 @@ using UnityEngine;
 public class V2 : MonoBehaviour
 {
     private Vector2Int imageDim;         //Dimension of image as public variable defined in game object in inspector X Y
-    public int regionAmount = 0;            //number of sites
+    private int regionAmount = 0;            //number of sites
 	public bool drawByDistance = false; //determine mode
 	private float x_test;
 	private float y_test;
