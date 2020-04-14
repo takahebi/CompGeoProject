@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   drawByDistance: 1
-  dim: 1000
+  dim: 500
   vertices: []
 --- !u!212 &748347154
 SpriteRenderer:
