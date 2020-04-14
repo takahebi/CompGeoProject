@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class V2 : MonoBehaviour
 {
-    private Vector2Int imageDim;         //Dimension of image as public variable defined in game object in inspector X Y
-    private int regionAmount = 0;            //number of sites
-	public bool drawByDistance = false; //determine mode
+    private Vector2Int imageDim;         
+    private int regionAmount = 0;            
+	public bool drawByDistance = false; 
 	private float x_test;
 	private float y_test;
 	private float x_current;
@@ -15,15 +15,10 @@ public class V2 : MonoBehaviour
 	public List<Vector2Int> vertices;
 
 
-	private void Start()                //called once at the start of program
+	private void Start()                
 	{
 		imageDim.x = dim;
-		imageDim.y = dim;
-
-		//sprite create method 
-		//var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance()   
-			//: GetDiagram()), new Rect(0, 0, imageDim.x, imageDim.y),                                     
-			//Vector2.one * 0.5f);                                                                       
+		imageDim.y = dim;                                                                   
 
         var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create(blackTex(), new Rect(0, 0, imageDim.x, imageDim.y), 
 			Vector2.one * 0.5f);                                    
@@ -44,13 +39,20 @@ public class V2 : MonoBehaviour
 			regionAmount++;
 			Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            x_current = clickPosition.x + x_test/2;
-			y_current = y_test/2 - clickPosition.y;
+			x_current = clickPosition.y + y_test/2;
+			y_current =clickPosition.x + x_test / 2;
+
+			Debug.Log(clickPosition.y + "   " + clickPosition.x);
+			Debug.Log(x_current + "   " + y_current);
+
+
 			float x_new = dim / x_test * x_current;
 			float y_new = dim / y_test * y_current;
 
+            //Debug.Log()
+
 			vertices.Add(new Vector2Int((int)(x_new), (int)(y_new)));
-			//GetComponent<SpriteRenderer>().sprite = Sprite.Create(GetDiagram(), new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
+			
 			GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance(): GetDiagram()),
                 new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
 
@@ -61,13 +63,11 @@ public class V2 : MonoBehaviour
 
     //GetDiagram
     Texture2D GetDiagram()
-	{
-		//Vector2Int[] centroids = new Vector2Int[regionAmount];                                              
+	{                                             
 		Color[] regions = new Color[regionAmount];                                                         
 
         for (int i = 0; i < regionAmount; i++)                                                             
-		{
-			//centroids[i] = new Vector2Int(Random.Range(0, imageDim.x), Random.Range(0, imageDim.y));       
+		{    
 			regions[i] = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);   
 		}
 
@@ -90,7 +90,6 @@ public class V2 : MonoBehaviour
         Color[] pixelColors = new Color[imageDim.x * imageDim.y];
         float[] distances = new float[imageDim.x * imageDim.y];
 
-        //you can get the max distance in the same pass as you calculate the distances. :P oops!
         float maxDst = float.MinValue;
         for (int x = 0; x < imageDim.x; x++)
         {
@@ -114,28 +113,21 @@ public class V2 : MonoBehaviour
     }
 
 
-
-    //int GetClosestCentroidIndex(Vector2Int pixelPos, Vector2Int[] centroids)
     int GetClosestCentroidIndex(Vector2Int pixelPos)
 	{
 		float smallestDst = float.MaxValue;
 		int index = 0;
-		//for (int i = 0; i < centroids.Length; i++)
+
 		for (int i = 0; i < vertices.Count; i++)
 		{
-			//if (Vector2.Distance(pixelPos, centroids[i]) < smallestDst)
 			if (Vector2.Distance(pixelPos, vertices[i]) < smallestDst)
 			{
-				//smallestDst = Vector2.Distance(pixelPos, centroids[i]);
 				smallestDst = Vector2.Distance(pixelPos, vertices[i]);
 				index = i;
 			}
 		}
 		return index;
 	}
-
-
-
 
 	Texture2D GetImageFromColorArray(Color[] pixelColors)
 	{
