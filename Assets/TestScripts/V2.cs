@@ -21,20 +21,17 @@ public class V2 : MonoBehaviour
 		imageDim.y = dim;
 
 		//sprite create method 
-		//var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance()    // texture: which design to use draw by distance or by distance
-		//	: GetDiagram()), new Rect(0, 0, imageDim.x, imageDim.y),                                      // Rect is a unity methon for rectangles  (x, y, width, height) --> width and height defined in game object
-		//	Vector2.one * 0.5f);                                                                          // pivot determines what becomes the center of the Sprite  
+		//var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance()   
+			//: GetDiagram()), new Rect(0, 0, imageDim.x, imageDim.y),                                     
+			//Vector2.one * 0.5f);                                                                       
 
-        var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create(blackTex(), new Rect(0, 0, imageDim.x, imageDim.y), // Rect is a unity methon for rectangles  (x, y, width, height) --> width and height defined in game object
+        var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create(blackTex(), new Rect(0, 0, imageDim.x, imageDim.y), 
 			Vector2.one * 0.5f);                                    
 
-		//Debug.Log(spr.bounds.extents.x);
+
 		x_test = spr.bounds.extents.x * 2;
 		y_test = spr.bounds.extents.y * 2;
 	}
-
-
-
 
 
     //testing for mouse input to add points
@@ -47,18 +44,15 @@ public class V2 : MonoBehaviour
 			regionAmount++;
 			Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-            //clickPosition.x < 0 ? (clickPosition.x + x_test) 
-
             x_current = clickPosition.x + x_test/2;
 			y_current = y_test/2 - clickPosition.y;
 			float x_new = dim / x_test * x_current;
 			float y_new = dim / y_test * y_current;
 
-	
-			Debug.Log(x_new + " " + y_new);
-
 			vertices.Add(new Vector2Int((int)(x_new), (int)(y_new)));
-			GetComponent<SpriteRenderer>().sprite = Sprite.Create(GetDiagram(), new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
+			//GetComponent<SpriteRenderer>().sprite = Sprite.Create(GetDiagram(), new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
+			GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance(): GetDiagram()),
+                new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
 
 		}
 
@@ -68,24 +62,22 @@ public class V2 : MonoBehaviour
     //GetDiagram
     Texture2D GetDiagram()
 	{
-		//Vector2Int[] centroids = new Vector2Int[regionAmount];                                              // centroids = site locations
-		Color[] regions = new Color[regionAmount];                                                          // array of colors for color representation  
+		//Vector2Int[] centroids = new Vector2Int[regionAmount];                                              
+		Color[] regions = new Color[regionAmount];                                                         
 
-        for (int i = 0; i < regionAmount; i++)                                                              // for the number of sites defined in public variable
+        for (int i = 0; i < regionAmount; i++)                                                             
 		{
-			//centroids[i] = new Vector2Int(Random.Range(0, imageDim.x), Random.Range(0, imageDim.y));        // site location generated randomly from width and height
-			//Debug.Log(centroids[i]);
-			regions[i] = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);   // random colors generater, number of colors = num regions or sites
+			//centroids[i] = new Vector2Int(Random.Range(0, imageDim.x), Random.Range(0, imageDim.y));       
+			regions[i] = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);   
 		}
 
 
-		Color[] pixelColors = new Color[imageDim.x * imageDim.y];                                           // pixels is defined by dimensions
-		for (int x = 0; x < imageDim.x; x++)                                                                // for width      
+		Color[] pixelColors = new Color[imageDim.x * imageDim.y];                                           
+		for (int x = 0; x < imageDim.x; x++)                                                                
 		{
-			for (int y = 0; y < imageDim.y; y++)                                                            //   for height
+			for (int y = 0; y < imageDim.y; y++)                                                          
 			{
-				int index = x * imageDim.x + y;                                                             //     index determined by position 
-				//pixelColors[index] = regions[GetClosestCentroidIndex(new Vector2Int(x, y), centroids)];
+				int index = x * imageDim.x + y;                                                             
 				pixelColors[index] = regions[GetClosestCentroidIndex(new Vector2Int(x, y))];
 			}
 		}
@@ -93,62 +85,38 @@ public class V2 : MonoBehaviour
 	}
 
 
+    Texture2D GetDiagramByDistance()
+    {
+        Color[] pixelColors = new Color[imageDim.x * imageDim.y];
+        float[] distances = new float[imageDim.x * imageDim.y];
+
+        //you can get the max distance in the same pass as you calculate the distances. :P oops!
+        float maxDst = float.MinValue;
+        for (int x = 0; x < imageDim.x; x++)
+        {
+            for (int y = 0; y < imageDim.y; y++)
+            {
+                int index = x * imageDim.x + y;
+                distances[index] = Vector2.Distance(new Vector2Int(x, y), vertices[GetClosestCentroidIndex(new Vector2Int(x, y))]);
+                if (distances[index] > maxDst)
+                {
+                    maxDst = distances[index];
+                }
+            }
+        }
+
+        for (int i = 0; i < distances.Length; i++)
+        {
+            float colorValue = distances[i] / maxDst;
+            pixelColors[i] = new Color(colorValue, colorValue, colorValue, 1f);
+        }
+        return GetImageFromColorArray(pixelColors);
+    }
 
 
 
-
-	//Texture2D GetDiagramByDistance()
-	//{
-	//	Vector2Int[] centroids = new Vector2Int[regionAmount];
-
-	//	for (int i = 0; i < regionAmount; i++)
-	//	{
-	//		centroids[i] = new Vector2Int(Random.Range(0, imageDim.x), Random.Range(0, imageDim.y));
-	//	}
-	//	Color[] pixelColors = new Color[imageDim.x * imageDim.y];
-	//	float[] distances = new float[imageDim.x * imageDim.y];
-
-	//	//you can get the max distance in the same pass as you calculate the distances. :P oops!
-	//	float maxDst = float.MinValue;
-	//	for (int x = 0; x < imageDim.x; x++)
-	//	{
-	//		for (int y = 0; y < imageDim.y; y++)
-	//		{
-	//			int index = x * imageDim.x + y;
-	//			distances[index] = Vector2.Distance(new Vector2Int(x, y), centroids[GetClosestCentroidIndex(new Vector2Int(x, y), centroids)]);
-	//			if (distances[index] > maxDst)
-	//			{
-	//				maxDst = distances[index];
-	//			}
-	//		}
-	//	}
-
-	//	for (int i = 0; i < distances.Length; i++)
-	//	{
-	//		float colorValue = distances[i] / maxDst;
-	//		pixelColors[i] = new Color(colorValue, colorValue, colorValue, 1f);
-	//	}
-	//	return GetImageFromColorArray(pixelColors);
-	//}
-	/* didn't actually need this
-	float GetMaxDistance(float[] distances)
-	{
-		float maxDst = float.MinValue;
-		for(int i = 0; i < distances.Length; i++)
-		{
-			if(distances[i] > maxDst)
-			{
-				maxDst = distances[i];
-			}
-		}
-		return maxDst;
-	}*/
-
-
-
-
-	//int GetClosestCentroidIndex(Vector2Int pixelPos, Vector2Int[] centroids)
-	int GetClosestCentroidIndex(Vector2Int pixelPos)
+    //int GetClosestCentroidIndex(Vector2Int pixelPos, Vector2Int[] centroids)
+    int GetClosestCentroidIndex(Vector2Int pixelPos)
 	{
 		float smallestDst = float.MaxValue;
 		int index = 0;
@@ -179,7 +147,7 @@ public class V2 : MonoBehaviour
 	}
 
 
-
+    //starting texture
 	Texture2D blackTex()
 	{
 		Color[] pixelColors = new Color[imageDim.x * imageDim.y];
