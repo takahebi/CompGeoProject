@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class vertex : MonoBehaviour
 {
+
+
     // Start is called before the first frame update
     void Start()
     {
