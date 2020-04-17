@@ -5,6 +5,7 @@ using csDelaunay;
 
 public class VoronoiDiagram : MonoBehaviour
 {
+   
 
     // The number of polygons/sites we want
     public int polygonNumber = 200;
@@ -36,6 +37,9 @@ public class VoronoiDiagram : MonoBehaviour
         edges = voronoi.Edges;
 
         DisplayVoronoiDiagram();
+
+        meshifyV();
+
     }
 
     private List<Vector2f> CreateRandomPoint()
@@ -104,4 +108,34 @@ public class VoronoiDiagram : MonoBehaviour
             }
         }
     }
+    //-----------------------------------------------------------------------------------------------------
+    private void meshifyV()
+    {
+        int size = 0;
+        foreach (KeyValuePair<Vector2f, Site> kv in sites)
+        { size++; }
+        Vector3[] newVertices = new Vector3[size];
+
+        size = 0;
+        foreach (KeyValuePair<Vector2f, Site> kv in sites)
+        {
+            //tx.SetPixel((int)kv.Key.x, (int)kv.Key.y, Color.red);
+             Vector3 temp = new Vector3 ( (kv.Key.x), kv.Key.y, 1);
+
+            newVertices[size] = temp;
+            size++;
+           // foreach (Vector2 edge in site)
+          //  {
+
+          //  }
+
+        }
+        Mesh mesh = new Mesh();
+        GetComponent<MeshFilter>().mesh = mesh;
+       mesh.vertices = newVertices;
+        // mesh.uv = newUV;
+        //  mesh.triangles = newTriangles;
+       
+    }
+//----------------------------------------------------------------------------------------------------------
 }
