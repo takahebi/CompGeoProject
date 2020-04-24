@@ -114,25 +114,46 @@ public class VoronoiDiagram : MonoBehaviour
         int size = 0;
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
         { size++; }
-        Vector3[] newVertices = new Vector3[size];
 
+        List<Vector3> newVerticesV = new List<Vector3>();
+        List<Vector3> newTrisV = new List<Vector3>();
         size = 0;
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
         {
             //tx.SetPixel((int)kv.Key.x, (int)kv.Key.y, Color.red);
              Vector3 temp = new Vector3 ( (kv.Key.x), kv.Key.y, 1);
 
-            newVertices[size] = temp;
-            size++;
-           // foreach (Vector2 edge in site)
-          //  {
+            newVerticesV.Add(temp);
+            
+           
+          foreach (Edge cur in kv.Value.Edges)
+         {
+                Vector2f main = cur.LeftSite.Coord;
+               float mx = main.x;
+               float my = main.y;
+                Vector2f next = cur.RightSite.Coord;
+                float nx = next.x;
+                float ny = next.y;
+                //Vertex lv = cur.LeftVertex;
+                //  int lvx = lv.x;
+                // alt formating to remmeber 
+                // lv.Left
+                Vector3 trueMain = new Vector3((mx), my, 1);
+                Vector3 trueNext = new Vector3((mx), my, 1);
+                if (!newVerticesV.Contains(trueMain))
+                {
+                    newVerticesV.Add(trueMain);
 
-          //  }
+                }
+                newTrisV.Add(temp);
+                newTrisV.Add(trueMain);
+                newTrisV.Add(trueNext);
+            }
 
         }
         Mesh mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
-       mesh.vertices = newVertices;
+       //mesh.vertices = newVerticesV;
         // mesh.uv = newUV;
         //  mesh.triangles = newTriangles;
        
