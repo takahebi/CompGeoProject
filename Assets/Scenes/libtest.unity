@@ -238,7 +238,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 502f417e051d6874083b8fb2d722218b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  polygonNumber: 200
+  polygonNumber: 6
 --- !u!64 &498319053
 MeshCollider:
   m_ObjectHideFlags: 0

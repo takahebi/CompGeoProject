@@ -8,7 +8,7 @@ public class VoronoiDiagram : MonoBehaviour
    
 
     // The number of polygons/sites we want
-    public int polygonNumber = 200;
+    public int polygonNumber = 15;
 
     // This is where we will store the resulting data
     private Dictionary<Vector2f, Site> sites;
@@ -38,7 +38,7 @@ public class VoronoiDiagram : MonoBehaviour
 
         DisplayVoronoiDiagram();
 
-        meshifyV();
+       meshifyV();
 
     }
 
@@ -84,6 +84,14 @@ public class VoronoiDiagram : MonoBehaviour
         int x1 = (int)p1.x;
         int y1 = (int)p1.y;
 
+        if (x0 == 0 || x0 == 512 || x1 == 0 || x1 == 512 || y0 == 0 || y0 == 512 || y1 == 0 || y1 == 512) {
+            //    Debug.Log(x0);
+            //    Debug.Log(y0);
+            //    Debug.Log(x1);
+            //   Debug.Log(y1);
+        }
+
+
         int dx = Mathf.Abs(x1 - x0);
         int dy = Mathf.Abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;
@@ -112,9 +120,7 @@ public class VoronoiDiagram : MonoBehaviour
     private void meshifyV()
     {
         int size = sites.Count;
-       // foreach (KeyValuePair<Vector2f, Site> kv in sites)
-        //{ size++; }
-
+       
         List<Vector3> newVerticesV = new List<Vector3>();
         List<Vector3> newTrisV = new List<Vector3>();
         size = 0;
@@ -123,43 +129,76 @@ public class VoronoiDiagram : MonoBehaviour
             //tx.SetPixel((int)kv.Key.x, (int)kv.Key.y, Color.red);
             Vector3 temp = new Vector3((kv.Key.x), kv.Key.y, 0);
 
-            newVerticesV.Add(temp);
+           newVerticesV.Add(temp);
 
 
             foreach (Edge cur in kv.Value.Edges)
             {
-                Vector2f main = cur.LeftSite.Coord;
-                float mx = main.x;
-                float my = main.y;
-                Vector2f next = cur.RightSite.Coord;
-                float nx = next.x;
-                float ny = next.y;
-                //Vertex lv = cur.LeftVertex;
-                //  int lvx = lv.x;
-                // alt formating to remmeber 
-                // lv.Left
-                Vector3 trueMain = new Vector3((mx), my, 1);
-                Vector3 trueNext = new Vector3((nx), ny, 1);
-                if (!newVerticesV.Contains(trueMain))
-                {
-                    newVerticesV.Add(trueMain);
 
-                }
-                newTrisV.Add(trueNext);
-                newTrisV.Add(trueMain);
-                newTrisV.Add(temp);
                
+               // Debug.Log(cur.ClippedEnds[LR.LEFT].x);
+                Vector2f main = cur.ClippedEnds[LR.LEFT];
+                Vector2f next = cur.ClippedEnds[LR.RIGHT];
+               
+                    Debug.Log("left x");
+                    Debug.Log(main.x);
+                    Debug.Log("left y");
+                    Debug.Log(main.y);
+           
+                
+                /*      if (next == null) { 
+
+
+                         Vector2f next = cur.ClippedEnds[LR.RIGHT];
+                         Debug.Log("right x");
+                         Debug.Log((int)cur.ClippedEnds[LR.RIGHT].x);
+                         Debug.Log("right y");
+                         Debug.Log((int)cur.ClippedEnds[LR.RIGHT].y);
+                     } */
+                    float mx = (int)main.x;
+                    float my = (int)main.y;
+
+
+                    float nx = (int)next.x;
+                    float ny = (int)next.y;
+                    //Vertex lv = cur.LeftVertex;
+                    //  int lvx = lv.x;
+                    // alt formating to remmeber 
+                    // lv.Left
+                    Vector3 trueMain = new Vector3((mx), my, 0);
+                    Vector3 trueNext = new Vector3((nx), ny, 0);
+
+                    //Debug.Log(!newVerticesV.Contains(trueMain));
+                    if (!newVerticesV.Contains(trueMain))
+                    {
+                        newVerticesV.Add(trueMain);
+                        Debug.Log("hi from vert add");
+                    }
+                    //  Debug.Log("true main");
+                    //  Debug.Log(trueMain);
+                    //   Debug.Log("true next");
+                    //    Debug.Log(trueNext);
+                    //    Debug.Log("temp");
+                    //   Debug.Log(temp);
+                    newTrisV.Add(trueNext);
+                    newTrisV.Add(trueMain);
+                    newTrisV.Add(temp);
+                
             }
 
         }
-        
+
         int vectsize = newTrisV.Count;
+        Debug.Log("Flag-------------------------------------S");
+        Debug.Log(vectsize);
         int[] newTriangles = new int[vectsize];
         int i = 0;
         foreach (Vector3 cur in newTrisV)
         {
             int index = newVerticesV.FindIndex
                 (v3 => v3.Equals(cur));
+          //  Debug.Log("new triangles index");
+          //  Debug.Log(index);
             newTriangles[i] = index;
             i++;
         }
@@ -172,11 +211,11 @@ public class VoronoiDiagram : MonoBehaviour
         }
 
         Mesh mesh = new Mesh();
-      mesh.Clear();
+        mesh.Clear();
         GetComponent<MeshFilter>().mesh = mesh;
-       mesh.vertices = newVerticesV.ToArray();
-      mesh.uv = uvs;
-         mesh.triangles = newTriangles;
+        mesh.vertices = newVerticesV.ToArray();
+        mesh.uv = uvs;
+        mesh.triangles = newTriangles;
        
     }
 //----------------------------------------------------------------------------------------------------------
