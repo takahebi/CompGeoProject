@@ -111,9 +111,9 @@ public class VoronoiDiagram : MonoBehaviour
     //-----------------------------------------------------------------------------------------------------
     private void meshifyV()
     {
-        int size = 0;
-        foreach (KeyValuePair<Vector2f, Site> kv in sites)
-        { size++; }
+        int size = sites.Count;
+       // foreach (KeyValuePair<Vector2f, Site> kv in sites)
+        //{ size++; }
 
         List<Vector3> newVerticesV = new List<Vector3>();
         List<Vector3> newTrisV = new List<Vector3>();
@@ -121,16 +121,16 @@ public class VoronoiDiagram : MonoBehaviour
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
         {
             //tx.SetPixel((int)kv.Key.x, (int)kv.Key.y, Color.red);
-             Vector3 temp = new Vector3 ( (kv.Key.x), kv.Key.y, 1);
+            Vector3 temp = new Vector3((kv.Key.x), kv.Key.y, 0);
 
             newVerticesV.Add(temp);
-            
-           
-          foreach (Edge cur in kv.Value.Edges)
-         {
+
+
+            foreach (Edge cur in kv.Value.Edges)
+            {
                 Vector2f main = cur.LeftSite.Coord;
-               float mx = main.x;
-               float my = main.y;
+                float mx = main.x;
+                float my = main.y;
                 Vector2f next = cur.RightSite.Coord;
                 float nx = next.x;
                 float ny = next.y;
@@ -139,23 +139,44 @@ public class VoronoiDiagram : MonoBehaviour
                 // alt formating to remmeber 
                 // lv.Left
                 Vector3 trueMain = new Vector3((mx), my, 1);
-                Vector3 trueNext = new Vector3((mx), my, 1);
+                Vector3 trueNext = new Vector3((nx), ny, 1);
                 if (!newVerticesV.Contains(trueMain))
                 {
                     newVerticesV.Add(trueMain);
 
                 }
-                newTrisV.Add(temp);
-                newTrisV.Add(trueMain);
                 newTrisV.Add(trueNext);
+                newTrisV.Add(trueMain);
+                newTrisV.Add(temp);
+               
             }
 
         }
+        
+        int vectsize = newTrisV.Count;
+        int[] newTriangles = new int[vectsize];
+        int i = 0;
+        foreach (Vector3 cur in newTrisV)
+        {
+            int index = newVerticesV.FindIndex
+                (v3 => v3.Equals(cur));
+            newTriangles[i] = index;
+            i++;
+        }
+
+
+        Vector2[] uvs = new Vector2[newVerticesV.ToArray().Length];
+        for ( i = 0; i < uvs.Length; i++)
+        {
+            uvs[i] = new Vector2(0, 0);
+        }
+
         Mesh mesh = new Mesh();
+      mesh.Clear();
         GetComponent<MeshFilter>().mesh = mesh;
-       //mesh.vertices = newVerticesV;
-        // mesh.uv = newUV;
-        //  mesh.triangles = newTriangles;
+       mesh.vertices = newVerticesV.ToArray();
+      mesh.uv = uvs;
+         mesh.triangles = newTriangles;
        
     }
 //----------------------------------------------------------------------------------------------------------
