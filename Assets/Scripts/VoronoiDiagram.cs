@@ -140,13 +140,14 @@ public class VoronoiDiagram : MonoBehaviour
 
             float siteX = kv.Key.x;
             float siteY = kv.Key.y;
-            Color siteColor = new Color(siteX / 512, siteY / 512, 0.5f);
+
+            Color siteColor = gradient.Evaluate(sites.Count/10);
             ///help flag
             Debug.Log(siteColor);
             Vector3 siteLocation = new Vector3(siteX, siteY, 0);
             newVerticesV.Add(siteLocation);
 
-            float tempUV = 0;
+          //  float tempUV = 0;
             uvIndex++;
 
             Vector2f firstPoint = Vector2f.left;
@@ -182,22 +183,26 @@ public class VoronoiDiagram : MonoBehaviour
 
 
         Vector2[] uvs = new Vector2[newVerticesV.ToArray().Length];
-        for ( i = 0; i < uvs.Length; i++)
-        {
-            uvs[i] = new Vector2(0, 0);
-        }
+     //   for ( i = 0; i < uvs.Length; i++)
+       // {
+          //  uvs[i] = gradient.;
+      //  }
         Color[] colors = vertexColors.ToArray();
         Debug.Log("new vertices size" + uvs.Length);
         Debug.Log("colors size" + vertexColors.Count);
         Debug.Log("colors size" + colors.Length);
         Debug.Log("new triangles size" + newTriangles.Length);
+        foreach (Color color in vertexColors)
+        {
+            Debug.Log(color);
+        }
 
         Mesh mesh = new Mesh();
         mesh.Clear();
         
         GetComponent<MeshFilter>().mesh = mesh;
         mesh.vertices = newVerticesV.ToArray();
-        //mesh.uv = uvs;
+    //    mesh.uv = uvs;
         mesh.triangles = newTriangles;
         mesh.colors = colors;
         
