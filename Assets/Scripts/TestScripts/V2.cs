@@ -1,102 +1,85 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
+using System.IO;
 
 public class V2 : MonoBehaviour
 {
-    private Vector2Int imageDim;         
-    private int regionAmount = 0;            
-	public bool drawByDistance = false; 
+    Vector2Int imageDim;         
+    int siteNumber = 0;
+    
 	private float x_test;
 	private float y_test;
 	private float x_current;
 	private float y_current;
     public int dim;
-	public List<Vector2Int> vertices;
+	List<Vector2Int> vertices;
 
+	Stopwatch stopwatch;
+	string path;
 
+	//intialize 
 	private void Start()                
 	{
+		path = Application.dataPath + "/timingLogA.csv";
+		File.WriteAllText(path, "Timing System A Log\n\n");
+		File.AppendAllText(path, "Numeber of Sites\tTime (ms)\n");
+
 		imageDim.x = dim;
 		imageDim.y = dim;                                                                   
 
         var spr = GetComponent<SpriteRenderer>().sprite = Sprite.Create(blackTex(), new Rect(0, 0, imageDim.x, imageDim.y), 
-			Vector2.one * 0.5f);                                    
+			Vector2.one * 0.5f);
 
-
+		vertices = new List<Vector2Int>();
 		x_test = spr.bounds.extents.x * 2;
 		y_test = spr.bounds.extents.y * 2;
 	}
 
 
-    //testing for mouse input to add points
+    //Use Mouse location and translate position to sprite to generate site
     private void Update()
     {
-        //dynamic vertices
-		if (Input.GetMouseButtonDown(0))
+		
+        if (Input.GetMouseButtonDown(0))
         {
+			stopwatch = Stopwatch.StartNew();
 			Destroy(GetComponent<Sprite>());
-			regionAmount++;
+			siteNumber++;
 			Vector3 clickPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
 			x_current = clickPosition.y + y_test/2;
 			y_current =clickPosition.x + x_test / 2;
 
-			Debug.Log(clickPosition.y + "   " + clickPosition.x);
-			Debug.Log(x_current + "   " + y_current);
-
-
 			float x_new = dim / x_test * x_current;
 			float y_new = dim / y_test * y_current;
 
-            //Debug.Log()
-
 			vertices.Add(new Vector2Int((int)(x_new), (int)(y_new)));
-			
-			GetComponent<SpriteRenderer>().sprite = Sprite.Create((drawByDistance ? GetDiagramByDistance(): GetDiagram()),
+			GetComponent<SpriteRenderer>().sprite = Sprite.Create(VoronoiDiagram(),
                 new Rect(0, 0, imageDim.x, imageDim.y),Vector2.one * 0.5f);
 
+            UnityEngine.Debug.Log("Number of Sites: " + siteNumber + " Time to Generate Diagram (ms): " + stopwatch.ElapsedMilliseconds);
+			string content = siteNumber + "," + stopwatch.ElapsedMilliseconds + "\n";
+			File.AppendAllText(path, content);
 		}
+
 
 	}
 
-
-    //GetDiagram
-    Texture2D GetDiagram()
-	{                                             
-		Color[] regions = new Color[regionAmount];                                                         
-
-        for (int i = 0; i < regionAmount; i++)                                                             
-		{    
-			regions[i] = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), 1f);   
-		}
-
-
-		Color[] pixelColors = new Color[imageDim.x * imageDim.y];                                           
-		for (int x = 0; x < imageDim.x; x++)                                                                
-		{
-			for (int y = 0; y < imageDim.y; y++)                                                          
-			{
-				int index = x * imageDim.x + y;                                                             
-				pixelColors[index] = regions[GetClosestCentroidIndex(new Vector2Int(x, y))];
-			}
-		}
-		return GetImageFromColorArray(pixelColors);
-	}
-
-
-    Texture2D GetDiagramByDistance()
+    Texture2D VoronoiDiagram()
     {
         Color[] pixelColors = new Color[imageDim.x * imageDim.y];
         float[] distances = new float[imageDim.x * imageDim.y];
 
         float maxDst = float.MinValue;
+
         for (int x = 0; x < imageDim.x; x++)
         {
             for (int y = 0; y < imageDim.y; y++)
             {
                 int index = x * imageDim.x + y;
-                distances[index] = Vector2.Distance(new Vector2Int(x, y), vertices[GetClosestCentroidIndex(new Vector2Int(x, y))]);
+                distances[index] = Vector2.Distance(new Vector2Int(x, y), vertices[NearestSite(new Vector2Int(x, y))]);
                 if (distances[index] > maxDst)
                 {
                     maxDst = distances[index];
@@ -109,11 +92,12 @@ public class V2 : MonoBehaviour
             float colorValue = distances[i] / maxDst;
             pixelColors[i] = new Color(colorValue, colorValue, colorValue, 1f);
         }
-        return GetImageFromColorArray(pixelColors);
+
+        return CreateTexure(pixelColors);
     }
 
 
-    int GetClosestCentroidIndex(Vector2Int pixelPos)
+    int NearestSite(Vector2Int pixelPos)
 	{
 		float smallestDst = float.MaxValue;
 		int index = 0;
@@ -129,7 +113,7 @@ public class V2 : MonoBehaviour
 		return index;
 	}
 
-	Texture2D GetImageFromColorArray(Color[] pixelColors)
+	Texture2D CreateTexure(Color[] pixelColors)
 	{
 		Texture2D tex = new Texture2D(imageDim.x, imageDim.y);
 		tex.filterMode = FilterMode.Point;
@@ -147,8 +131,7 @@ public class V2 : MonoBehaviour
 		{
 			for (int y = 0; y < imageDim.y; y++)                                                            
 			{
-				int index = x * imageDim.x + y;                                                             
-																											
+				int index = x * imageDim.x + y;                                                             																						
 				pixelColors[index] = Color.black;
 			}
 		}
