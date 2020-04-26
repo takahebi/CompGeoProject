@@ -5,8 +5,8 @@ using csDelaunay;
 
 public class VoronoiDiagram : MonoBehaviour
 {
-   
 
+    public Gradient gradient;
     // The number of polygons/sites we want
     public int polygonNumber = 15;
 
@@ -35,10 +35,14 @@ public class VoronoiDiagram : MonoBehaviour
         // Now retreive the edges from it, and the new sites position if you used lloyd relaxtion
         sites = voronoi.SitesIndexedByLocation;
         edges = voronoi.Edges;
+        //DisplayVoronoiDiagram();
 
+        foreach (KeyValuePair<Vector2f, Site> kv in sites)
+            kv.Value.Region(bounds);
         DisplayVoronoiDiagram();
 
-       meshifyV();
+
+        meshifyV();
 
     }
 
@@ -49,7 +53,7 @@ public class VoronoiDiagram : MonoBehaviour
         List<Vector2f> points = new List<Vector2f>();
         for (int i = 0; i < polygonNumber; i++)
         {
-            points.Add(new Vector2f(Random.Range(0, 512), Random.Range(0, 512)));
+            points.Add(new Vector2f((int) Random.Range(100, 400), (int) Random.Range(100, 400)));
         }
 
         return points;
@@ -67,8 +71,12 @@ public class VoronoiDiagram : MonoBehaviour
         foreach (Edge edge in edges)
         {
             // if the edge doesn't have clippedEnds, if was not within the bounds, dont draw it
-            if (edge.ClippedEnds == null) continue;
+            if (edge.ClippedEnds == null)
+            {
+                Debug.Log("missing clipped end");
+                    continue;
 
+            }
             DrawLine(edge.ClippedEnds[LR.LEFT], edge.ClippedEnds[LR.RIGHT], tx, Color.black);
         }
         tx.Apply();
@@ -122,83 +130,52 @@ public class VoronoiDiagram : MonoBehaviour
         int size = sites.Count;
        
         List<Vector3> newVerticesV = new List<Vector3>();
+        List<Color> vertexColors = new List<Color>();
         List<Vector3> newTrisV = new List<Vector3>();
         size = 0;
+        Rectf bounds = new Rectf(0, 0, 512, 512);
+        float uvIndex = 0;
         foreach (KeyValuePair<Vector2f, Site> kv in sites)
         {
-            //tx.SetPixel((int)kv.Key.x, (int)kv.Key.y, Color.red);
-            Vector3 temp = new Vector3((kv.Key.x), kv.Key.y, 0);
 
-           newVerticesV.Add(temp);
+            float siteX = kv.Key.x;
+            float siteY = kv.Key.y;
+            Color siteColor = new Color(siteX / 512, siteY / 512, 0.5f);
+            ///help flag
+            Debug.Log(siteColor);
+            Vector3 siteLocation = new Vector3(siteX, siteY, 0);
+            newVerticesV.Add(siteLocation);
 
+            float tempUV = 0;
+            uvIndex++;
 
-            foreach (Edge cur in kv.Value.Edges)
+            Vector2f firstPoint = Vector2f.left;
+            Vector2f lastPoint = Vector2f.left;
+            Vector2f previousPoint = Vector2f.left;
+            foreach (Vector2f currentPoint in kv.Value.Region(bounds))
             {
+                if (previousPoint == Vector2f.left)
+                {
+                    previousPoint = currentPoint;
+                    firstPoint = currentPoint;
+                    vertexColors.Add(siteColor);
+                    continue;
+                }
 
-               
-               // Debug.Log(cur.ClippedEnds[LR.LEFT].x);
-                Vector2f main = cur.ClippedEnds[LR.LEFT];
-                Vector2f next = cur.ClippedEnds[LR.RIGHT];
-               
-                    Debug.Log("left x");
-                    Debug.Log(main.x);
-                    Debug.Log("left y");
-                    Debug.Log(main.y);
-           
-                
-                /*      if (next == null) { 
-
-
-                         Vector2f next = cur.ClippedEnds[LR.RIGHT];
-                         Debug.Log("right x");
-                         Debug.Log((int)cur.ClippedEnds[LR.RIGHT].x);
-                         Debug.Log("right y");
-                         Debug.Log((int)cur.ClippedEnds[LR.RIGHT].y);
-                     } */
-                    float mx = (int)main.x;
-                    float my = (int)main.y;
-
-
-                    float nx = (int)next.x;
-                    float ny = (int)next.y;
-                    //Vertex lv = cur.LeftVertex;
-                    //  int lvx = lv.x;
-                    // alt formating to remmeber 
-                    // lv.Left
-                    Vector3 trueMain = new Vector3((mx), my, 0);
-                    Vector3 trueNext = new Vector3((nx), ny, 0);
-
-                    //Debug.Log(!newVerticesV.Contains(trueMain));
-                    if (!newVerticesV.Contains(trueMain))
-                    {
-                        newVerticesV.Add(trueMain);
-                        Debug.Log("hi from vert add");
-                    }
-                    //  Debug.Log("true main");
-                    //  Debug.Log(trueMain);
-                    //   Debug.Log("true next");
-                    //    Debug.Log(trueNext);
-                    //    Debug.Log("temp");
-                    //   Debug.Log(temp);
-                    newTrisV.Add(trueNext);
-                    newTrisV.Add(trueMain);
-                    newTrisV.Add(temp);
-                
+                addTriangle(newVerticesV, vertexColors, newTrisV, siteX, siteY, siteColor, siteLocation, previousPoint, currentPoint);
+                previousPoint = currentPoint;
+                lastPoint = currentPoint;
             }
-
+            addTriangle(newVerticesV, vertexColors, newTrisV, siteX, siteY, siteColor, siteLocation, lastPoint, firstPoint);
         }
 
         int vectsize = newTrisV.Count;
-        Debug.Log("Flag-------------------------------------S");
-        Debug.Log(vectsize);
         int[] newTriangles = new int[vectsize];
         int i = 0;
         foreach (Vector3 cur in newTrisV)
         {
             int index = newVerticesV.FindIndex
                 (v3 => v3.Equals(cur));
-          //  Debug.Log("new triangles index");
-          //  Debug.Log(index);
             newTriangles[i] = index;
             i++;
         }
@@ -209,14 +186,55 @@ public class VoronoiDiagram : MonoBehaviour
         {
             uvs[i] = new Vector2(0, 0);
         }
+        Color[] colors = vertexColors.ToArray();
+        Debug.Log("new vertices size" + uvs.Length);
+        Debug.Log("colors size" + vertexColors.Count);
+        Debug.Log("colors size" + colors.Length);
+        Debug.Log("new triangles size" + newTriangles.Length);
 
         Mesh mesh = new Mesh();
         mesh.Clear();
+        
         GetComponent<MeshFilter>().mesh = mesh;
         mesh.vertices = newVerticesV.ToArray();
-        mesh.uv = uvs;
+        //mesh.uv = uvs;
         mesh.triangles = newTriangles;
+        mesh.colors = colors;
+        
        
     }
-//----------------------------------------------------------------------------------------------------------
+
+    private static bool addTriangle(List<Vector3> newVerticesV, List<Color> vertexColors, List<Vector3> newTrisV, 
+        float siteX, float siteY, 
+        Color siteColor, Vector3 siteLocation, 
+        Vector2f previousPoint, Vector2f currentPoint)
+    {
+        float mx = (int)currentPoint.x;
+        float my = (int)currentPoint.y;
+        Vector3 trueMain = new Vector3((mx), my, 0);
+        newVerticesV.Add(trueMain);
+        vertexColors.Add(siteColor);
+        //help flag
+        float nx = (int)previousPoint.x;
+        float ny = (int)previousPoint.y;
+        Vector3 truePrevious = new Vector3((nx), ny, 0);
+        bool orientation =
+            (my - siteY) * (nx - mx) -
+            (mx - siteX) * (ny - my) > 0;
+        if (orientation)
+        {
+            newTrisV.Add(truePrevious);
+            newTrisV.Add(trueMain);
+            newTrisV.Add(siteLocation);
+        }
+        else
+        {
+            newTrisV.Add(trueMain);
+            newTrisV.Add(truePrevious);
+            newTrisV.Add(siteLocation);
+        }
+
+        return orientation;
+    }
+    //----------------------------------------------------------------------------------------------------------
 }
