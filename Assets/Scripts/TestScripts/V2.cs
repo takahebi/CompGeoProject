@@ -24,7 +24,7 @@ public class V2 : MonoBehaviour
 	{
 		path = Application.dataPath + "/timingLogA.csv";
 		File.WriteAllText(path, "Timing System A Log\n\n");
-		File.AppendAllText(path, "Numeber of Sites\tTime (ms)\n");
+		File.AppendAllText(path, "Number of Sites, Time (ms)\n");
 
 		imageDim.x = dim;
 		imageDim.y = dim;                                                                   
@@ -80,7 +80,9 @@ public class V2 : MonoBehaviour
             {
                 int index = x * imageDim.x + y;
                 distances[index] = Vector2.Distance(new Vector2Int(x, y), vertices[NearestSite(new Vector2Int(x, y))]);
-                if (distances[index] > maxDst)
+				//distances[index] = Manhattan(new Vector2Int(x, y), vertices[NearestSite(new Vector2Int(x, y))]);
+
+				if (distances[index] > maxDst)
                 {
                     maxDst = distances[index];
                 }
@@ -96,6 +98,11 @@ public class V2 : MonoBehaviour
         return CreateTexure(pixelColors);
     }
 
+    float Manhattan(Vector2 a, Vector2 b)
+    {
+		return Mathf.Abs(b.x - a.x) + Mathf.Abs(b.y - a.y);
+    }
+
 
     int NearestSite(Vector2Int pixelPos)
 	{
@@ -105,6 +112,7 @@ public class V2 : MonoBehaviour
 		for (int i = 0; i < vertices.Count; i++)
 		{
 			if (Vector2.Distance(pixelPos, vertices[i]) < smallestDst)
+			//if (Manhattan(pixelPos, vertices[i]) < smallestDst)
 			{
 				smallestDst = Vector2.Distance(pixelPos, vertices[i]);
 				index = i;
