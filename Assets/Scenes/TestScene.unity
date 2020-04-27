@@ -153,9 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c8d51c3ce9334a9d8c5243d4598a64a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  drawByDistance: 1
-  dim: 500
-  vertices: []
+  dim: 800
+  manhattan: 1
 --- !u!212 &748347154
 SpriteRenderer:
   m_ObjectHideFlags: 0

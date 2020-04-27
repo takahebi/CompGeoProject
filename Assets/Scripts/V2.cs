@@ -15,6 +15,7 @@ public class V2 : MonoBehaviour
 	private float y_current;
     public int dim;
 	List<Vector2Int> vertices;
+    public bool manhattan;
 
 	Stopwatch stopwatch;
 	string path;
@@ -80,8 +81,6 @@ public class V2 : MonoBehaviour
             {
                 int index = x * imageDim.x + y;
                 distances[index] = Vector2.Distance(new Vector2Int(x, y), vertices[NearestSite(new Vector2Int(x, y))]);
-				//distances[index] = Manhattan(new Vector2Int(x, y), vertices[NearestSite(new Vector2Int(x, y))]);
-
 				if (distances[index] > maxDst)
                 {
                     maxDst = distances[index];
@@ -111,11 +110,22 @@ public class V2 : MonoBehaviour
 
 		for (int i = 0; i < vertices.Count; i++)
 		{
-			if (Vector2.Distance(pixelPos, vertices[i]) < smallestDst)
-			//if (Manhattan(pixelPos, vertices[i]) < smallestDst)
+			if (manhattan)
 			{
-				smallestDst = Vector2.Distance(pixelPos, vertices[i]);
-				index = i;
+				if (Manhattan(pixelPos, vertices[i]) < smallestDst)
+				{
+					smallestDst = Manhattan(pixelPos, vertices[i]);
+					index = i;
+				}
+
+			}
+			else
+			{
+				if (Vector2.Distance(pixelPos, vertices[i]) < smallestDst)
+				{
+					smallestDst = Vector2.Distance(pixelPos, vertices[i]);
+					index = i;
+				}
 			}
 		}
 		return index;
